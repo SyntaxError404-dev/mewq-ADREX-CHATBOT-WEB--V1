@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 processResponse(textResponse);
             }, 1000 + Math.random() * 1000);
         } catch (error) {
+            console.error('Error processing request:', error);
             hideTypingIndicator();
             addMessage(`Sorry, there was an error processing your request: ${error.message}`, 'bot');
         }
@@ -121,4 +122,3 @@ document.addEventListener('DOMContentLoaded', () => {
         addMessage("Hello! I'm Adrex. How can I assist you today?", 'bot');
     }, 1000);
 });
-
