@@ -88,7 +88,7 @@ body {
 .container {
     width: 90%;
     max-width: 600px;
-    height: 80vh; /* Fixed height for the container */
+    height: 80vh;
     margin: 0 auto;
     padding: 1rem;
     position: relative;
@@ -180,8 +180,8 @@ body {
     border-radius: 15px;
     backdrop-filter: blur(10px);
     margin-top: auto;
-    max-width: 100%; /* Ensure it doesn't exceed the container's width */
-    box-sizing: border-box; /* Include padding in width calculation */
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .input-field {
@@ -193,7 +193,7 @@ body {
     color: var(--text);
     font-size: 1rem;
     transition: all 0.3s ease;
-    max-width: calc(100% - 3rem); /* Adjust for the button's width */
+    max-width: calc(100% - 3rem);
     box-sizing: border-box;
 }
 
@@ -207,9 +207,10 @@ body {
     color: var(--primary);
     transform-style: preserve-3d;
     transition: all 0.3s ease;
-    width: auto; /* Ensure it scales properly */
-    max-height: 2.5rem; /* Adjust for consistent alignment */
-}}
+    width: auto;
+    max-height: 2.5rem;
+    position: relative;
+}
 
 .send-btn::before {
     content: '';
@@ -345,4 +346,4 @@ body {
     font-size: 2rem;
     color: white;
     cursor: pointer;
-  }
+}
