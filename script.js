@@ -24,40 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 hideTypingIndicator();
                 processResponse(textResponse);
-                generateTitle(message);
             }, 1000 + Math.random() * 1000);
         } catch (error) {
             hideTypingIndicator();
             addMessage(`Sorry, there was an error processing your request: ${error.message}`, 'bot');
         }
-    }
-
-    async function generateTitle(userMessage) {
-        const titlePrompt = `Create a very short but meaningful title for this message: "${userMessage}"`;
-        try {
-            const titleResponse = await fetch(`https://adrex-chat-bot-v1-by-nzr.onrender.com/adrex?ask=${encodeURIComponent(titlePrompt)}&id=${userId}`);
-            if (!titleResponse.ok) throw new Error(`Error: ${titleResponse.status} ${titleResponse.statusText}`);
-            const titleText = await titleResponse.text();
-            displayTitlePopup(titleText);
-        } catch (error) {
-            console.error('Error generating title:', error);
-        }
-    }
-
-    function displayTitlePopup(title) {
-        const titlePopup = document.getElementById('titlePopup');
-        const popupTitle = document.getElementById('popupTitle');
-        popupTitle.textContent = title;
-
-        titlePopup.style.display = 'block';
-        titlePopup.classList.add('show');
-
-        setTimeout(() => {
-            titlePopup.classList.remove('show');
-            setTimeout(() => {
-                titlePopup.style.display = 'none';
-            }, 500);
-        }, 4000);
     }
 
     function processResponse(response) {
@@ -150,3 +121,4 @@ document.addEventListener('DOMContentLoaded', () => {
         addMessage("Hello! I'm Adrex. How can I assist you today?", 'bot');
     }, 1000);
 });
+
