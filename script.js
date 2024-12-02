@@ -13,12 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addMessage(message, 'user');
         userInput.value = '';
+
         showTypingIndicator();
 
         try {
             const response = await fetch(`https://adrex-chat-bot-v1-by-nzr.onrender.com/adrex?ask=${encodeURIComponent(message)}&id=${userId}`);
             if (!response.ok) throw new Error(`Error: ${response.status} ${response.statusText}`);
             const textResponse = await response.text();
+
             setTimeout(() => {
                 hideTypingIndicator();
                 processResponse(textResponse);
@@ -47,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (textPart) {
             const formattedText = formatText(textPart);
-            simulateTyping(formattedText, 'bot');
+            addMessage(formattedText, 'bot');
         }
     }
 
@@ -110,32 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function simulateTyping(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        const messageContent = document.createElement('div');
-        messageContent.className = 'message-content';
-        messageDiv.appendChild(messageContent);
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        let index = 0;
-        const typingSpeed = 50;
-
-        function type() {
-            if (index < text.length) {
-                messageContent.innerHTML += text.charAt(index);
-                index++;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                setTimeout(type, typingSpeed);
-            } else {
-                messageContent.style.animation = 'fadeIn 0.5s forwards';
-            }
-        }
-
-        type();
-    }
-
     sendButton.addEventListener('click', sendMessage);
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
@@ -145,3 +121,4 @@ document.addEventListener('DOMContentLoaded', () => {
         addMessage("Hello! I'm Adrex. How can I assist you today?", 'bot');
     }, 1000);
 });
+
