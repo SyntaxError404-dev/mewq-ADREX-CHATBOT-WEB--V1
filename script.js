@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
         let textPart = response;
 
-        // Check and remove any JSON-like prompt string if present
         if (textPart.includes('{"prompt":')) {
             const promptStartIndex = textPart.indexOf('{"prompt":');
             const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
