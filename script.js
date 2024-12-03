@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        const imageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
+        const oldImageLinkMatch = response.match(/!\[.*?\]\((.*?)\)/);
+        const newImageLinkMatch = response.match(/TOOL_CALL: generateImage[^!]*\((.*?)\)/);
         let textPart = response;
 
         if (textPart.includes('{"prompt":')) {
@@ -42,9 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
             textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
         }
 
-        if (imageLinkMatch) {
-            const imageUrl = imageLinkMatch[1];
-            textPart = textPart.replace(imageLinkMatch[0], '').trim();
+        if (oldImageLinkMatch) {
+            const imageUrl = oldImageLinkMatch[1];
+            textPart = textPart.replace(oldImageLinkMatch[0], '').trim();
+            displayImage(imageUrl, 'bot');
+        } else if (newImageLinkMatch) {
+            const imageUrl = newImageLinkMatch[1];
+            textPart = textPart.replace(newImageLinkMatch[0], '').trim();
             displayImage(imageUrl, 'bot');
         }
 
