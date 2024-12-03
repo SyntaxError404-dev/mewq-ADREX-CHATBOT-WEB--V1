@@ -33,28 +33,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        const imageLinkMatch = response.match(/!\[.*?\]\((.*?)\)/);
-        const toolCallMatch = response.match(/TOOL_CALL: generateImage.*?\((.*?)\)/);
+        // Regular expression to match the old image format
+        const oldImageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
+        // Regular expression to match the new TOOL_CALL image format
+        const newImageLinkMatch = response.match(/TOOL_CALL: generateImage\s*!\[.*?\]\((.*?)\)/);
 
         let textPart = response;
 
+        // Remove any JSON prompt from the text
         if (textPart.includes('{"prompt":')) {
             const promptStartIndex = textPart.indexOf('{"prompt":');
             const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
             textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
         }
 
-        if (imageLinkMatch) {
-            const imageUrl = imageLinkMatch[1];
-            textPart = textPart.replace(imageLinkMatch[0], '').trim();
+        // Process the old image format
+        if (oldImageLinkMatch) {
+            const imageUrl = oldImageLinkMatch[1];
+            textPart = textPart.replace(oldImageLinkMatch[0], '').trim();
             displayImage(imageUrl, 'bot');
         }
 
-        if (toolCallMatch) {
-            const imageUrl = toolCallMatch[1];
+        // Process the new TOOL_CALL image format
+        if (newImageLinkMatch) {
+            const imageUrl = newImageLinkMatch[1];
+            textPart = textPart.replace(newImageLinkMatch[0], '').trim();
             displayImage(imageUrl, 'bot');
         }
 
+        // Add the remaining text part as a message
         if (textPart) {
             const formattedText = formatText(textPart);
             addMessage(formattedText, 'bot');
