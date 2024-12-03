@@ -33,8 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        const oldImageLinkMatch = response.match(/!\[.*?\]\((.*?)\)/);
-        const newImageLinkMatch = response.match(/TOOL_CALL: generateImage[^!]*\((.*?)\)/);
+        const imageLinkMatch = response.match(/!\[.*?\]\((.*?)\)/);
+        const toolCallMatch = response.match(/TOOL_CALL: generateImage[^!]*\((.*?)\)/);
         let textPart = response;
 
         if (textPart.includes('{"prompt":')) {
@@ -43,13 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
             textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
         }
 
-        if (oldImageLinkMatch) {
-            const imageUrl = oldImageLinkMatch[1];
-            textPart = textPart.replace(oldImageLinkMatch[0], '').trim();
+        if (imageLinkMatch) {
+            const imageUrl = imageLinkMatch[1];
+            textPart = textPart.replace(imageLinkMatch[0], '').trim();
             displayImage(imageUrl, 'bot');
-        } else if (newImageLinkMatch) {
-            const imageUrl = newImageLinkMatch[1];
-            textPart = textPart.replace(newImageLinkMatch[0], '').trim();
+        } else if (toolCallMatch) {
+            const imageUrl = toolCallMatch[1];
+            textPart = textPart.replace(toolCallMatch[0], '').trim();
             displayImage(imageUrl, 'bot');
         }
 
@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function displayImage(url, sender) {
         try {
             const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch image.');
             const blob = await response.blob();
             const imageUrl = URL.createObjectURL(blob);
 
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
             messageDiv.querySelector('.chat-image').addEventListener('click', () => showImagePreview(imageUrl));
         } catch (error) {
+            console.error('Error loading image:', error);
             addMessage('Failed to load image.', sender);
         }
     }
