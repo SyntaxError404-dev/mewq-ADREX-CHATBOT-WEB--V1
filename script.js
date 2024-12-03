@@ -33,57 +33,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        // Regular expression to match the old image format
+        const imageLinkMatch = response.match(/!\[Generated Image for (.*?)\]\((.*?)\)/);
         const oldImageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
-        // Regular expression to match the new TOOL_CALL image format
-        const newImageLinkMatch = response.match(/TOOL_CALL: generateImage\s*!\[.*?\]\((.*?)\)/);
-
         let textPart = response;
 
-        // Remove any JSON prompt from the text
+        // Remove any JSON prompt if present
         if (textPart.includes('{"prompt":')) {
             const promptStartIndex = textPart.indexOf('{"prompt":');
             const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
             textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
         }
 
-        // Process the old image format
-        if (oldImageLinkMatch) {
+        if (imageLinkMatch) {
+            const imageUrl = imageLinkMatch[2];
+            textPart = textPart.replace(imageLinkMatch[0], '').trim();
+            downloadAndDisplayImage(imageUrl, 'bot');
+        } else if (oldImageLinkMatch) {
             const imageUrl = oldImageLinkMatch[1];
             textPart = textPart.replace(oldImageLinkMatch[0], '').trim();
-            displayImage(imageUrl, 'bot');
+            downloadAndDisplayImage(imageUrl, 'bot');
         }
 
-        // Process the new TOOL_CALL image format
-        if (newImageLinkMatch) {
-            const imageUrl = newImageLinkMatch[1];
-            textPart = textPart.replace(newImageLinkMatch[0], '').trim();
-            displayImage(imageUrl, 'bot');
-        }
-
-        // Add the remaining text part as a message
         if (textPart) {
             const formattedText = formatText(textPart);
             addMessage(formattedText, 'bot');
         }
     }
 
-    function formatText(text) {
-        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\s*\n/g, '<br><br>');
-    }
-
-    function addMessage(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
-    }
-
-    async function displayImage(url, sender) {
+    async function downloadAndDisplayImage(url, sender) {
         try {
             const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
+            
             const blob = await response.blob();
             const imageUrl = URL.createObjectURL(blob);
 
@@ -98,6 +79,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             addMessage('Failed to load image.', sender);
         }
+    }
+
+    function formatText(text) {
+        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\s*\n/g, '<br><br>');
+    }
+
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
     }
 
     function showImagePreview(imageUrl) {
