@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function processResponse(response) {
         const imageLinkMatch = response.match(/!\[Generated Image for (.*?)\]\((.*?)\)/);
-        const oldImageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
         let textPart = response;
 
         // Remove any JSON prompt if present
@@ -45,13 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (imageLinkMatch) {
+            const promptText = imageLinkMatch[1];
             const imageUrl = imageLinkMatch[2];
             textPart = textPart.replace(imageLinkMatch[0], '').trim();
-            downloadAndDisplayImage(imageUrl, 'bot');
-        } else if (oldImageLinkMatch) {
-            const imageUrl = oldImageLinkMatch[1];
-            textPart = textPart.replace(oldImageLinkMatch[0], '').trim();
-            downloadAndDisplayImage(imageUrl, 'bot');
+            downloadAndDisplayImage(imageUrl, promptText, 'bot');
         }
 
         if (textPart) {
@@ -60,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function downloadAndDisplayImage(url, sender) {
+    async function downloadAndDisplayImage(url, promptText, sender) {
         try {
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
@@ -70,7 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
-            messageDiv.innerHTML = `<div class="message-content"><img src="${imageUrl}" alt="Image" class="chat-image"/></div>`;
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <p><strong>Generated Image for ${promptText}</strong></p>
+                    <img src="${imageUrl}" alt="Image" class="chat-image"/>
+                </div>`;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
