@@ -68,9 +68,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function addImage(url) {
         const imageDiv = document.createElement('div');
         imageDiv.className = 'image-message';
-        imageDiv.innerHTML = `<img src="${url}" alt="Generated Image" style="max-width: 100%;"/>`;
+        imageDiv.innerHTML = `<img src="${url}" alt="Generated Image" class="chat-image" onclick="openImagePreview('${url}')" />`;
         chatMessages.appendChild(imageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    window.openImagePreview = function(url) {
+        const overlay = document.createElement('div');
+        overlay.className = 'image-preview';
+        overlay.style.display = 'flex';
+        overlay.innerHTML = `
+            <div class="image-preview-content">
+                <img src="${url}" alt="Preview Image" class="preview-image" />
+                <button class="close-preview" onclick="closeImagePreview()">X</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    window.closeImagePreview = function() {
+        const overlay = document.querySelector('.image-preview');
+        if (overlay) {
+            overlay.remove();
+        }
     }
 
     function showTypingIndicator() {
