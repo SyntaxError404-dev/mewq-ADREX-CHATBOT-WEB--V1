@@ -36,20 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
         let textPart = response;
         let imageUrl = '';
 
-        // Extract image URL and prompt text
-        const urlMatch = textPart.match(/\((https:\/\/[^\s)]+)\)/);
-        if (urlMatch) {
-            imageUrl = urlMatch[1];
-            textPart = textPart.replace(urlMatch[0], '').trim();
+        // Extract the image URL using a regular expression to find markdown image links
+        const imageMatch = textPart.match(/!\[.*?\]\((https:\/\/[^\s)]+)\)/);
+        if (imageMatch) {
+            imageUrl = imageMatch[1];
+            textPart = textPart.replace(imageMatch[0], '').trim(); // Remove the markdown link from the text
         }
 
         if (textPart) {
             const formattedText = formatText(textPart);
             addMessage(formattedText, 'bot');
+        }
 
-            if (imageUrl) {
-                downloadImage(imageUrl);
-            }
+        if (imageUrl) {
+            addImage(imageUrl);
         }
     }
 
@@ -66,6 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
     }
 
+    function addImage(url) {
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'image-message';
+        imageDiv.innerHTML = `<img src="${url}" alt="Generated Image" style="max-width: 100%;"/>`;
+        chatMessages.appendChild(imageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
     function showTypingIndicator() {
         const typingDiv = document.createElement('div');
         typingDiv.className = 'typing-indicator';
@@ -79,22 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typingIndicator) {
             typingIndicator.remove();
         }
-    }
-
-    function downloadImage(url) {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'downloaded_image.png';
-        link.textContent = 'Download Image';
-        link.className = 'download-link';
-
-        const imageDiv = document.createElement('div');
-        imageDiv.className = 'image-message';
-        imageDiv.innerHTML = `<img src="${url}" alt="Generated Image" style="max-width: 100%;"/><br>`;
-        imageDiv.appendChild(link);
-
-        chatMessages.appendChild(imageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     sendButton.addEventListener('click', sendMessage);
