@@ -34,16 +34,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function processResponse(response) {
         let textPart = response;
+        let imageUrl = '';
 
-        if (textPart.includes('{"prompt":')) {
-            const promptStartIndex = textPart.indexOf('{"prompt":');
-            const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
-            textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
+        // Extract image URL and prompt text
+        const urlMatch = textPart.match(/\((https:\/\/[^\s)]+)\)/);
+        if (urlMatch) {
+            imageUrl = urlMatch[1];
+            textPart = textPart.replace(urlMatch[0], '').trim();
         }
 
         if (textPart) {
             const formattedText = formatText(textPart);
             addMessage(formattedText, 'bot');
+
+            if (imageUrl) {
+                downloadImage(imageUrl);
+            }
         }
     }
 
@@ -73,6 +79,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typingIndicator) {
             typingIndicator.remove();
         }
+    }
+
+    function downloadImage(url) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'downloaded_image.png';
+        link.textContent = 'Download Image';
+        link.className = 'download-link';
+
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'image-message';
+        imageDiv.innerHTML = `<img src="${url}" alt="Generated Image" style="max-width: 100%;"/><br>`;
+        imageDiv.appendChild(link);
+
+        chatMessages.appendChild(imageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     sendButton.addEventListener('click', sendMessage);
