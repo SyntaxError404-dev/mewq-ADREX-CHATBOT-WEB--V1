@@ -26,29 +26,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 processResponse(textResponse);
             }, 1000 + Math.random() * 1000);
         } catch (error) {
-            console.error('Error processing request:', error);
             hideTypingIndicator();
             addMessage(`Sorry, there was an error processing your request: ${error.message}`, 'bot');
         }
     }
 
     function processResponse(response) {
-        let textPart = response.replace(/TOOL_CALL: generateImage/g, '').trim();
-        let imageUrl = '';
+        const imageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
+        let textPart = response;
 
-        const imageMatch = textPart.match(/!\[.*?\]\((https:\/\/[^\s)]+)\)/);
-        if (imageMatch) {
-            imageUrl = imageMatch[1];
-            textPart = textPart.replace(imageMatch[0], '').trim();
+        if (textPart.includes('{"prompt":')) {
+            const promptStartIndex = textPart.indexOf('{"prompt":');
+            const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
+            textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
+        }
+
+        if (imageLinkMatch) {
+            const imageUrl = imageLinkMatch[1];
+            textPart = textPart.replace(imageLinkMatch[0], '').trim();
+            displayImage(imageUrl, 'bot');
         }
 
         if (textPart) {
             const formattedText = formatText(textPart);
             addMessage(formattedText, 'bot');
-        }
-
-        if (imageUrl) {
-            addImage(imageUrl);
         }
     }
 
@@ -65,32 +66,35 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
     }
 
-    function addImage(url) {
-        const imageDiv = document.createElement('div');
-        imageDiv.className = 'image-message';
-        imageDiv.innerHTML = `<img src="${url}" alt="Generated Image" class="chat-image" onclick="openImagePreview('${url}')" />`;
-        chatMessages.appendChild(imageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+    async function displayImage(url, sender) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
 
-    window.openImagePreview = function(url) {
-        const overlay = document.createElement('div');
-        overlay.className = 'image-preview';
-        overlay.style.display = 'flex';
-        overlay.innerHTML = `
-            <div class="image-preview-content">
-                <img src="${url}" alt="Preview Image" class="preview-image" />
-                <button class="close-preview" onclick="closeImagePreview()">X</button>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    }
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = `<div class="message-content"><img src="${imageUrl}" alt="Image" class="chat-image"/></div>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    window.closeImagePreview = function() {
-        const overlay = document.querySelector('.image-preview');
-        if (overlay) {
-            overlay.remove();
+            messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
+            messageDiv.querySelector('.chat-image').addEventListener('click', () => showImagePreview(imageUrl));
+        } catch (error) {
+            addMessage('Failed to load image.', sender);
         }
+    }
+
+    function showImagePreview(imageUrl) {
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'image-preview';
+        previewContainer.innerHTML = `<img src="${imageUrl}" alt="Preview"><span class="close-preview">&times;</span>`;
+        document.body.appendChild(previewContainer);
+        previewContainer.style.display = 'flex';
+
+        previewContainer.querySelector('.close-preview').addEventListener('click', () => {
+            document.body.removeChild(previewContainer);
+        });
     }
 
     function showTypingIndicator() {
