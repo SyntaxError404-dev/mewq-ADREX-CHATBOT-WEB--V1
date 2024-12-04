@@ -33,35 +33,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        const imageLinkMatch = response.match(/!\[Generated Image for (.*?)\]\((.*?)\)/);
-        
-        if (imageLinkMatch) {
-            const promptText = imageLinkMatch[1];
-            const imageUrl = imageLinkMatch[2];
-            downloadAndDisplayImage(imageUrl, promptText, 'bot');
-        } else {
-            addMessage('No image found in the response.', 'bot');
+        let textPart = response;
+
+        if (textPart.includes('{"prompt":')) {
+            const promptStartIndex = textPart.indexOf('{"prompt":');
+            const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
+            textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
         }
-    }
 
-    async function downloadAndDisplayImage(url, promptText, sender) {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
-            
-            const blob = await response.blob();
-            const imageUrl = URL.createObjectURL(blob);
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            messageDiv.innerHTML = `<div class="message-content"><strong>Generated Image for ${promptText}:</strong><br><img src="${imageUrl}" alt="Image" class="chat-image"/></div>`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
-            messageDiv.querySelector('.chat-image').addEventListener('click', () => showImagePreview(imageUrl));
-        } catch (error) {
-            addMessage('Failed to load image.', sender);
+        if (textPart) {
+            const formattedText = formatText(textPart);
+            addMessage(formattedText, 'bot');
         }
     }
 
@@ -76,18 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
-    }
-
-    function showImagePreview(imageUrl) {
-        const previewContainer = document.createElement('div');
-        previewContainer.className = 'image-preview';
-        previewContainer.innerHTML = `<img src="${imageUrl}" alt="Preview"><span class="close-preview">&times;</span>`;
-        document.body.appendChild(previewContainer);
-        previewContainer.style.display = 'flex';
-
-        previewContainer.querySelector('.close-preview').addEventListener('click', () => {
-            document.body.removeChild(previewContainer);
-        });
     }
 
     function showTypingIndicator() {
