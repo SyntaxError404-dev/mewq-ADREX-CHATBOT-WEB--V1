@@ -32,24 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        const imageLinkMatch = response.match(/!\[image\]\((.*?)\)/);
-        let textPart = response;
+        let textPart = response.replace(/TOOL_CALL: generateImage/g, '').trim();
+        let imageUrl = '';
 
-        if (textPart.includes('{"prompt":')) {
-            const promptStartIndex = textPart.indexOf('{"prompt":');
-            const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
-            textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
-        }
-
-        if (imageLinkMatch) {
-            const imageUrl = imageLinkMatch[1];
-            textPart = textPart.replace(imageLinkMatch[0], '').trim();
-            displayImage(imageUrl, 'bot');
+        const imageMatch = textPart.match(/!\[.*?\]\((https:\/\/[^\s)]+)\)/);
+        if (imageMatch) {
+            imageUrl = imageMatch[1];
+            textPart = textPart.replace(imageMatch[0], '').trim();
         }
 
         if (textPart) {
             const formattedText = formatText(textPart);
             addMessage(formattedText, 'bot');
+        }
+
+        if (imageUrl) {
+            displayImage(imageUrl, 'bot');
         }
     }
 
@@ -66,26 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
     }
 
-    async function displayImage(url, sender) {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const imageUrl = URL.createObjectURL(blob);
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            messageDiv.innerHTML = `<div class="message-content"><img src="${imageUrl}" alt="Image" class="chat-image"/></div>`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
-            messageDiv.querySelector('.chat-image').addEventListener('click', () => showImagePreview(imageUrl));
-        } catch (error) {
-            addMessage('Failed to load image.', sender);
-        }
+    function displayImage(url, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        messageDiv.innerHTML = `<div class="message-content"><img src="${url}" alt="Image" class="chat-image" onclick="showImagePreview('${url}')"/></div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        messageDiv.querySelector('.message-content').style.animation = 'fadeIn 0.5s forwards';
     }
 
-    function showImagePreview(imageUrl) {
+    window.showImagePreview = function(imageUrl) {
         const previewContainer = document.createElement('div');
         previewContainer.className = 'image-preview';
         previewContainer.innerHTML = `<img src="${imageUrl}" alt="Preview"><span class="close-preview">&times;</span>`;
