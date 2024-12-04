@@ -33,14 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processResponse(response) {
-        let textPart = response;
+        let textPart = response.replace(/TOOL_CALL: generateImage/g, '').trim();
         let imageUrl = '';
 
-        // Extract the image URL using a regular expression to find markdown image links
         const imageMatch = textPart.match(/!\[.*?\]\((https:\/\/[^\s)]+)\)/);
         if (imageMatch) {
             imageUrl = imageMatch[1];
-            textPart = textPart.replace(imageMatch[0], '').trim(); // Remove the markdown link from the text
+            textPart = textPart.replace(imageMatch[0], '').trim();
         }
 
         if (textPart) {
