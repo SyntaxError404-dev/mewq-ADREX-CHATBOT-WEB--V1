@@ -34,25 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function processResponse(response) {
         const imageLinkMatch = response.match(/!\[Generated Image for (.*?)\]\((.*?)\)/);
-        let textPart = response;
-
-        // Remove any JSON prompt if present
-        if (textPart.includes('{"prompt":')) {
-            const promptStartIndex = textPart.indexOf('{"prompt":');
-            const promptEndIndex = textPart.indexOf('}', promptStartIndex) + 1;
-            textPart = textPart.replace(textPart.substring(promptStartIndex, promptEndIndex), '').trim();
-        }
-
+        
         if (imageLinkMatch) {
             const promptText = imageLinkMatch[1];
             const imageUrl = imageLinkMatch[2];
-            textPart = textPart.replace(imageLinkMatch[0], '').trim();
             downloadAndDisplayImage(imageUrl, promptText, 'bot');
-        }
-
-        if (textPart) {
-            const formattedText = formatText(textPart);
-            addMessage(formattedText, 'bot');
+        } else {
+            addMessage('No image found in the response.', 'bot');
         }
     }
 
@@ -66,11 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    <p><strong>Generated Image for ${promptText}</strong></p>
-                    <img src="${imageUrl}" alt="Image" class="chat-image"/>
-                </div>`;
+            messageDiv.innerHTML = `<div class="message-content"><strong>Generated Image for ${promptText}:</strong><br><img src="${imageUrl}" alt="Image" class="chat-image"/></div>`;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
